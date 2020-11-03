@@ -1,9 +1,0 @@
-- ghci --> repl
-- ctrl-d o :q--> para salir de repl
-- :l <file> links the file
-- :r reloads/recompiles
-- :t <func> gets info about function
-- ghc --make <file> compile
-- ./<file> run
-
-modules: https://www.youtube.com/watch?v=SGSrjUoi29U
