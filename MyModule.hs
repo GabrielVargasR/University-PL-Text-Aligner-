@@ -4,6 +4,7 @@ module MyModule(
     lineify,
     stringify,
     tokenLength,
+    lineLength,
     test
 )
 where
@@ -23,9 +24,11 @@ where
     tokenString (HypWord tok) = tok ++ "- "
     tokenString (Word tok) = tok ++ " "
 
+    pruneLine :: Line -> Line
+    pruneLine line = dropWhile (== Blank) $ reverse $ dropWhile (==Blank) (reverse myLine)
+
     stringify :: Line -> String
-    stringify line = init $ concat $ map tokenString line
-    -- Falta tomar en cuenta 
+    stringify line = init $ concat $ map tokenString (pruneLine line)
 
 -- Calculates the length of a Token
     tokenLength :: Token -> Int
@@ -33,6 +36,11 @@ where
     tokenLength (Word tok) = length tok
     tokenLength (HypWord tok) = length tok + 1
 
+-- Calculates the length of a line
+    lineLength :: Line -> Int
+    lineLength line = length $ stringify line
 
 
-    test = tokenLength Blank
+-- for tests
+    myLine = (Blank) : (Blank) : (Word "Aquel") : (Word "que") : (Blank) :(HypWord "contro") : (Word "la") : (Blank) : (Blank) : []
+    test = stringify myLine
