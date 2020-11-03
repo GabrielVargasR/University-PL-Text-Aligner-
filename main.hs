@@ -6,12 +6,12 @@ import System.IO
 import MyModule
 
 main = do
-    putStrLn "Qué pa?"
+    putStrLn "Hi!"
     saludo <- getLine
     
     case saludo of
-        "qué me Disney" -> do
-            putStrLn "To' Goofy"
+        "Hello!" -> do
+            putStrLn "How's everything going"
         _ -> do
-            putStrLn "Sta mamando compa"
+            putStrLn "Wrong answer"
             main
