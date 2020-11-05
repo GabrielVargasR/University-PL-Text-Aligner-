@@ -8,10 +8,13 @@ module MyModule(
     lineLength,
     breakLine,
     mergers,
+    hyphenate,
     test
 )
 where
+    import Prelude hiding (null, lookup, map, filter)
     import Data.Map.Lazy hiding (sort,map,foldl,take,drop)
+    import Data.List (sort,map)
 -- Data types
     type Line = [Token]
     data Token = Word String | Blank | HypWord String 
@@ -31,7 +34,7 @@ where
     tokenString (Word tok) = tok ++ " "
 
     pruneLine :: Line -> Line
-    pruneLine line = dropWhile (== Blank) $ reverse $ dropWhile (==Blank) (reverse myLine)
+    pruneLine line = dropWhile (== Blank) $ reverse $ dropWhile (==Blank) (reverse line)
 
     stringify :: Line -> String
     stringify line = init $ concat $ map tokenString (pruneLine line)
@@ -60,11 +63,13 @@ where
                                 (_,_,fst, sec) = foldl (lengthCounter) (limit, 0, [Blank],[]) (pruneLine line)
                            in (tail fst, sec)
 
--- Generates all possible ways to concatenate a word provided as a list of syllables into two separated syllables
+-- Generates all possible ways to concatenate a string provided as a list of syllables into two separated syllables
     mergers :: [String]->[(String, String)]
     mergers syllables = [(concat $ take s syllables, concat $ drop s syllables) | s <- [1..length syllables-1]]
 
-
+-- Generates all possible ways to concatenate a Word in two parts, using HypWord and Word data
+    hyphenate :: HypMap -> Word -> [(Token,Token)]
+    hyphenate map word = [(Blank, Blank)]
 
 
 -- for tests
