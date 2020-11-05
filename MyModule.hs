@@ -15,6 +15,7 @@ where
     import Prelude hiding (null, lookup, map, filter)
     import Data.Map.Lazy hiding (sort,map,foldl,take,drop)
     import Data.List (sort,map)
+    import Data.Maybe
 -- Data types
     type Line = [Token]
     data Token = Word String | Blank | HypWord String 
@@ -68,8 +69,8 @@ where
     mergers syllables = [(concat $ take s syllables, concat $ drop s syllables) | s <- [1..length syllables-1]]
 
 -- Generates all possible ways to concatenate a Word in two parts, using HypWord and Word data
-    hyphenate :: HypMap -> Word -> [(Token,Token)]
-    hyphenate map word = [(Blank, Blank)]
+    hyphenate :: HypMap -> Token -> [(String,String)]
+    hyphenate hmap (Word str) = map (\(a,b)->(a,b++(reverse $ "" ++ (takeWhile (\n->elem n ['.', ',', '!']) (reverse str))))) (mergers $ fromJust $ lookup (takeWhile (\n->notElem n ['.', ',', '!', '?','"']) str) hmap)
 
 
 -- for tests
@@ -78,4 +79,6 @@ where
     enHyp :: HypMap
     enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"])]
 
-    test = mergers sepWord
+    test = hyphenate enHyp (Word "futuro...!")
+    
+    -- Para obtener puntuación: (reverse $ "" ++ (takeWhile (\n->elem n ['.', ',', '!']) (reverse str)))
