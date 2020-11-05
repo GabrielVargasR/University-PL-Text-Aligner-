@@ -69,8 +69,10 @@ where
     mergers syllables = [(concat $ take s syllables, concat $ drop s syllables) | s <- [1..length syllables-1]]
 
 -- Generates all possible ways to concatenate a Word in two parts, using HypWord and Word data
-    hyphenate :: HypMap -> Token -> [(String,String)]
-    hyphenate hmap (Word str) = map (\(a,b)->(a,b++(reverse $ "" ++ (takeWhile (\n->elem n ['.', ',', '!']) (reverse str))))) (mergers $ fromJust $ lookup (takeWhile (\n->notElem n ['.', ',', '!', '?','"']) str) hmap)
+    hyphenate :: HypMap -> Token -> [(Token,Token)]
+    hyphenate hmap (Word str) = map (\(a,b)->((HypWord a),(Word (b++punct)))) (mergers $ fromJust $ lookup punct' hmap)
+                                where punct = (dropWhile (\n->notElem n ['.', ',', '!', '?','"']) str)
+                                      punct' = (takeWhile (\n->notElem n ['.', ',', '!', '?','"']) str)
 
 
 -- for tests
@@ -79,6 +81,5 @@ where
     enHyp :: HypMap
     enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"])]
 
-    test = hyphenate enHyp (Word "futuro...!")
+    test = hyphenate enHyp (Word "futuro.,.!")
     
-    -- Para obtener puntuación: (reverse $ "" ++ (takeWhile (\n->elem n ['.', ',', '!']) (reverse str)))
