@@ -9,6 +9,7 @@ module MyModule(
     breakLine,
     mergers,
     hyphenate,
+    lineBreaks,
     test
 )
 where
@@ -74,12 +75,58 @@ where
                                 where punct = (dropWhile (\n->notElem n ['.', ',', '!', '?','"']) str)
                                       punct' = (takeWhile (\n->notElem n ['.', ',', '!', '?','"']) str)
 
+-- Finds all of the different ways to separate a line (given a specific length)
+    {-
+        The function receives the initial structure of the fold below and a tuple with one of the possible ways to divide the loose word
+        If the result of adding the hypWord to the first part of the broken line is shorter than the specified length, then it is added as a possible solution
+        Structure: (BrokenLine, SolutionArray, length)
+            - BrokenLine (Line, Line)
+            - SolutionArray [(Line, Line)] // array with possible solutions
+            - length Int
+        Second param 
+            - Separated word (HypWord, Word)
+    -}
+    lineAccumulator :: ((Line,Line), [(Line, Line)], Int) -> (Token,Token) -> ((Line,Line), [(Line, Line)], Int)
+    lineAccumulator ((firstPart, secondPart), accumulator, len) (hyp, word) = if (length $ stringify (firstPart ++ [hyp])) <= len then ((firstPart, secondPart), accumulator ++ [(firstPart++[hyp], [word])], len)
+                                                                              else ((firstPart, secondPart), accumulator, len)
+
+    -- lineBreaksAux :: HypMap -> Int -> Line -> [(Token,Token)] -> (Line, Line) -> [(Line,Line)]
+    -- lineBreaksAux hmap len line hiphens brokenLine = let
+    --                                                      ((first, second), final, len) = foldl (lineAccumulator) (brokenLine, [brokenLine], len) hiphens
+    --                                                  in final
+
+    -- lineBreaks :: HypMap -> Int -> Line -> [(Line,Line)]
+    -- lineBreaks hmap len line = lineBreaksAux hmap len line (loose broken) broken
+    --                             where broken = breakLine len line -- (Line, Line)
+    --                                   loose (a, b) = hyphenate hmap (head b) -- thought to be used with result of broken as parameter
+    
+    lineBreaks :: HypMap -> Int -> Line -> [(Line,Line)]
+    lineBreaks hmap len line = let
+                                    (_, final, _) = foldl (lineAccumulator) (broken, [broken], len) (loose broken)
+                                in final
+                                where broken = breakLine len line -- (Line, Line)
+                                      loose (a, b) = hyphenate hmap (head b) -- thought to be used with result of broken as parameter
+
+    -- lineBreaks :: HypMap -> Int -> Line -> [(Line,Line)]
+    -- lineBreaks hmap len line = let 
+    --                                 ((first, second), final, _) = foldl (lineAccumulator) (breakLine len line, [breakLine len line], len) (((\(a,b)-> hyphenate enHyp (head b)) (breakLine len line)))
+    --                             in final
+
+
+-- Inserts blanks in a line so that it gets to a certain length
+    blankFold :: Line -> Int -> Line
+    blankFold line 0 = line
+    blankFold line n = line
+
+    insertBlanks :: Line -> Int -> Line
+    insertBlanks [] n = []
+    insertBlanks line n = if lineLength line < n then blankFold line n
+                          else line
 
 -- for tests
     myLine = (Blank) : (Blank) : (Word "Aquel") : (Word "que") : (Blank) :(HypWord "contro") : (Word "la") : (Blank) : (Blank) : []
-    sepWord = ["con", "tro", "la"]
+    myOtherLine = [(Word "Aquel"), (Word "que"), (Word "controla")]
     enHyp :: HypMap
     enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"])]
 
-    test = hyphenate enHyp (Word "futuro.,.!")
-    
+    test = lineBreaks enHyp 16 myOtherLine
