@@ -10,6 +10,7 @@ module MyModule(
     mergers,
     hyphenate,
     lineBreaks,
+    insertBlanks,
     test
 )
 where
@@ -87,7 +88,7 @@ where
             - Separated word (HypWord, Word)
     -}
     lineAccumulator :: ((Line,Line), [(Line, Line)], Int) -> (Token,Token) -> ((Line,Line), [(Line, Line)], Int)
-    lineAccumulator ((firstPart, secondPart), accumulator, len) (hyp, word) = if (length $ stringify (firstPart ++ [hyp])) <= len then ((firstPart, secondPart), accumulator ++ [(firstPart++[hyp], [word])], len)
+    lineAccumulator ((firstPart, secondPart), accumulator, len) (hyp, word) = if (lineLength (firstPart ++ [hyp])) <= len then ((firstPart, secondPart), accumulator ++ [(firstPart++[hyp], [word])], len)
                                                                               else ((firstPart, secondPart), accumulator, len)
     
     lineBreaks :: HypMap -> Int -> Line -> [(Line,Line)]
@@ -95,17 +96,19 @@ where
                                     (_, final, _) = foldl (lineAccumulator) (broken, [broken], len) (loose broken)
                                 in final
                                 where broken = breakLine len line -- (Line, Line)
-                                      loose (a, b) = hyphenate hmap (head b) -- thought to be used with result of broken as parameter
+                                      loose (a, b) = hyphenate hmap (head b)
 
 -- Inserts blanks in a line so that it gets to a certain length
-    blankFold :: Line -> Int -> Line
-    blankFold line 0 = line
-    blankFold line n = line
+    blankFold :: (Line, Line, Int)->Token-> (Line, Line, Int)
+    blankFold (line, final, n) tok = (tail line, final ++ [tok] ++ [Blank | _<-[1..max]], n-max)
+                                     where 
+                                         max = (\a b-> ceiling (fromIntegral a / fromIntegral b)) n ((length line) -1)
 
     insertBlanks :: Line -> Int -> Line
-    insertBlanks [] n = []
-    insertBlanks line n = if lineLength line < n then blankFold line n
-                          else line
+    insertBlanks line n = if (length line) <= 1 then line
+                          else let
+                                    (_, final, _) = foldl (blankFold) (line, [], n) line
+                                in final
 
 -- for tests
     myLine = (Blank) : (Blank) : (Word "Aquel") : (Word "que") : (Blank) :(HypWord "contro") : (Word "la") : (Blank) : (Blank) : []
@@ -113,4 +116,4 @@ where
     enHyp :: HypMap
     enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"])]
 
-    test = lineBreaks enHyp 16 myOtherLine
+    test n = insertBlanks myOtherLine n
