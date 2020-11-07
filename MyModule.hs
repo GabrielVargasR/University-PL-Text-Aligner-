@@ -89,16 +89,6 @@ where
     lineAccumulator :: ((Line,Line), [(Line, Line)], Int) -> (Token,Token) -> ((Line,Line), [(Line, Line)], Int)
     lineAccumulator ((firstPart, secondPart), accumulator, len) (hyp, word) = if (length $ stringify (firstPart ++ [hyp])) <= len then ((firstPart, secondPart), accumulator ++ [(firstPart++[hyp], [word])], len)
                                                                               else ((firstPart, secondPart), accumulator, len)
-
-    -- lineBreaksAux :: HypMap -> Int -> Line -> [(Token,Token)] -> (Line, Line) -> [(Line,Line)]
-    -- lineBreaksAux hmap len line hiphens brokenLine = let
-    --                                                      ((first, second), final, len) = foldl (lineAccumulator) (brokenLine, [brokenLine], len) hiphens
-    --                                                  in final
-
-    -- lineBreaks :: HypMap -> Int -> Line -> [(Line,Line)]
-    -- lineBreaks hmap len line = lineBreaksAux hmap len line (loose broken) broken
-    --                             where broken = breakLine len line -- (Line, Line)
-    --                                   loose (a, b) = hyphenate hmap (head b) -- thought to be used with result of broken as parameter
     
     lineBreaks :: HypMap -> Int -> Line -> [(Line,Line)]
     lineBreaks hmap len line = let
@@ -106,12 +96,6 @@ where
                                 in final
                                 where broken = breakLine len line -- (Line, Line)
                                       loose (a, b) = hyphenate hmap (head b) -- thought to be used with result of broken as parameter
-
-    -- lineBreaks :: HypMap -> Int -> Line -> [(Line,Line)]
-    -- lineBreaks hmap len line = let 
-    --                                 ((first, second), final, _) = foldl (lineAccumulator) (breakLine len line, [breakLine len line], len) (((\(a,b)-> hyphenate enHyp (head b)) (breakLine len line)))
-    --                             in final
-
 
 -- Inserts blanks in a line so that it gets to a certain length
     blankFold :: Line -> Int -> Line
