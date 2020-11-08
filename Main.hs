@@ -1,5 +1,5 @@
 import Prelude hiding (null, lookup, map, filter)
-import Data.Map.Lazy hiding (sort,map,foldl)
+import Data.Map.Lazy hiding (sort,map,foldl,drop)
 import Data.Char
 import Data.List (sort,map)
 import System.IO
@@ -38,10 +38,17 @@ mainloop estado = do
             putStrLn $ "Diccionario guardado (" ++ (show $ size estado) ++ " palabras)"
             mainloop estado
         "split" -> do
-            putStrLn "How's everything going"
+            let (len, sep, adj, str) = (tokens!!1, separateOpt (tokens!!2), adjustOpt (tokens!!3), init $ foldl (\str wrd -> str ++ wrd ++ " ") "" (drop 4 tokens))
+            putStrLn $ sep ++ adj
+            printAdjustedLine $ breakAndAlign (read len :: Int) sep adj str estado
             mainloop estado
         "splitf" -> do
-            putStrLn "How's everything going"
+            let (len, sep, adj, inpfile) = (tokens!!1, separateOpt (tokens!!2), adjustOpt (tokens!!3), tokens!!4)
+            let outpfile | length tokens > 5 = tokens!!5
+                         | otherwise = ""
+            inh <- openFile inpfile ReadMode
+            -- ...
+            hClose inh 
             mainloop estado
         "exit" -> do
             putStrLn "Saliendo..."
@@ -70,5 +77,19 @@ makeSyllables arr = init $ foldl (\str syl-> str ++ syl ++ "-") "" arr
 saveDict :: Handle -> [(String, [String])] -> IO ()
 saveDict outh [] = return ()
 saveDict outh ((key,val):pairs) = do 
-                                        hPutStrLn outh $ key ++ " " ++ (makeSyllables val)
-                                        saveDict outh pairs
+                                    hPutStrLn outh $ key ++ " " ++ (makeSyllables val)
+                                    saveDict outh pairs
+
+separateOpt :: String->String
+separateOpt str | str == "n" = "NOSEPARAR"
+                | str == "s" = "SEPARAR"
+
+adjustOpt :: String->String
+adjustOpt str | str == "n" = "NOAJUSTAR"
+              | str == "s" = "AJUSTAR"
+
+printAdjustedLine :: [String] -> IO ()
+printAdjustedLine [] = return ()
+printAdjustedLine (x:xs) = do
+                            putStrLn x
+                            printAdjustedLine xs
