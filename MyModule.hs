@@ -93,7 +93,9 @@ where
                                                                               else ((firstPart, secondPart), accumulator, len)
     
     lineBreaks :: HypMap -> Int -> Line -> [(Line,Line)]
-    lineBreaks hmap len line = let
+    lineBreaks hmap len [] = [([],[])]
+    lineBreaks hmap len line = if lineLength line <= len then [(line,[])] 
+                               else let
                                     (_, final, _) = foldl (lineAccumulator) (broken, [broken], len) (loose broken)
                                 in final
                                 where broken = breakLine len line -- (Line, Line)
@@ -114,17 +116,17 @@ where
 -- Breaks and aligns an incoming String to fit a specific line length
     baAux :: Int->(Line,Line)->[Line]->[Line]
     baAux len (a,b) lines | b == [] = lines ++ [a]
-                         | b /= [] = baAux len (breakLine len b) (lines++[a])
+                          | b /= [] = baAux len (breakLine len b) (lines++[a])
 
-    baAux2 :: Int->(Line,Line)->[Line]->[Line]
-    baAux2 len (a,b) lines | b == [] = lines ++ [a]
-                           | b /= [] = baAux len (last (lineBreaks enHyp len b)) (lines++[a])
+    baSepAux :: Int->(Line,Line)->[Line]->[Line]
+    baSepAux len (a,b) lines | b == [] = lines ++ [a]
+                           | b /= [] = baSepAux len (last (lineBreaks enHyp len b)) (lines++[a])
 
     breakAndAlign :: Int->String->String->String->[String]
     breakAndAlign len flag1 flag2 inp | flag1 == "NOSEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baAux len (breakLine len (lineify inp)) []
                                       | flag1 == "NOSEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) (baAux len (breakLine len (lineify inp)) [])
-                                      | flag1 == "SEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baAux2 len (last $ lineBreaks enHyp len (lineify inp)) []
-                                      | flag1 == "SEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) $ baAux2 len (last $ lineBreaks enHyp len (lineify inp)) []
+                                      | flag1 == "SEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baSepAux len (last $ lineBreaks enHyp len (lineify inp)) []
+                                      | flag1 == "SEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) $ baSepAux len (last $ lineBreaks enHyp len (lineify inp)) []
 
 
 -- for tests
@@ -133,8 +135,4 @@ where
     enHyp :: HypMap
     enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"]), ("pasado", ["pa", "sa", "do"])]
 
-    -- test = breakAndAlign 20 "SEPARAR" "NOAJUSTAR" "Quien controla el pasado controla el futuro. Quien controla el presente controla el pasado."
-    -- test = baAux2 20 (last (lineBreaks enHyp 20 (lineify "Quien controla el pasado controla el futuro. Quien controla el presente controla el pasado."))) []
-    -- test = (\(a,b)->(stringify a) ++ "\n" ++ (stringify b)) (last $ lineBreaks enHyp 20 (lineify "futuro. Quien controla el presente"))
-    -- test = last $ lineBreaks enHyp 20 (lineify "controla el pasado.")
-    test = lineBreaks enHyp 20 (lineify "controla el pasado.") -- hay que arreglar lineBreaks por esa excepción que da este test
+    test len f1 f2 = breakAndAlign len f1 f2 "Quien controla el pasado controla el futuro. Quien controla el presente controla el pasado."
