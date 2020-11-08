@@ -18,7 +18,7 @@ where
     import Data.Map.Lazy hiding (sort,map,foldl,take,drop)
     import Data.List (sort,map)
     import Data.Maybe
-    
+
 -- Data types
     type Line = [Token]
     data Token = Word String | Blank | HypWord String 
@@ -132,7 +132,7 @@ where
 -- for tests
     -- myLine = (Blank) : (Blank) : (Word "Aquel") : (Word "que") : (Blank) :(HypWord "contro") : (Word "la") : (Blank) : (Blank) : []
     -- myOtherLine = [(Word "Aquel"), (Word "que"), (Word "controla")]
-    -- enHyp :: HypMap
-    -- enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"]), ("pasado", ["pa", "sa", "do"])]
+    enHyp :: HypMap
+    enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"]), ("pasado", ["pa", "sa", "do"])]
 
     -- test len f1 f2 = breakAndAlign len f1 f2 "Quien controla el pasado controla el futuro. Quien controla el presente controla el pasado."
