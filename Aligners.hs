@@ -1,16 +1,5 @@
 module Aligners(
-    Line,
-    Token,
     HypMap,
-    lineify,
-    stringify,
-    tokenLength,
-    lineLength,
-    breakLine,
-    mergers,
-    hyphenate,
-    lineBreaks,
-    insertBlanks,
     breakAndAlign
 )
 where
@@ -18,7 +7,7 @@ where
     import Data.Map.Lazy hiding (sort,map,foldl,take,drop)
     import Data.List (sort,map)
     import Data.Maybe
-    
+
 -- Data types
     type Line = [Token]
     data Token = Word String | Blank | HypWord String 
@@ -118,15 +107,15 @@ where
     baAux len (a,b) lines | b == [] = lines ++ [a]
                           | b /= [] = baAux len (breakLine len b) (lines++[a])
 
-    baSepAux :: Int->(Line,Line)->[Line]->[Line]
-    baSepAux len (a,b) lines | b == [] = lines ++ [a]
-                           | b /= [] = baSepAux len (last (lineBreaks enHyp len b)) (lines++[a])
+    baSepAux :: Int->(Line,Line)->[Line]->HypMap->[Line]
+    baSepAux len (a,b) lines hmap | b == [] = lines ++ [a]
+                                  | b /= [] = baSepAux len (last (lineBreaks hmap len b)) (lines++[a]) hmap
 
-    breakAndAlign :: Int->String->String->String->[String]
-    breakAndAlign len flag1 flag2 inp | flag1 == "NOSEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baAux len (breakLine len (lineify inp)) []
-                                      | flag1 == "NOSEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) (baAux len (breakLine len (lineify inp)) [])
-                                      | flag1 == "SEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baSepAux len (last $ lineBreaks enHyp len (lineify inp)) []
-                                      | flag1 == "SEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) $ baSepAux len (last $ lineBreaks enHyp len (lineify inp)) []
+    breakAndAlign :: Int->String->String->String->HypMap->[String]
+    breakAndAlign len flag1 flag2 inp hmap | flag1 == "NOSEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baAux len (breakLine len (lineify inp)) []
+                                           | flag1 == "NOSEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) (baAux len (breakLine len (lineify inp)) [])
+                                           | flag1 == "SEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baSepAux len (last $ lineBreaks hmap len (lineify inp)) [] hmap
+                                           | flag1 == "SEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) $ baSepAux len (last $ lineBreaks hmap len (lineify inp)) [] hmap
 
 
 -- for tests
