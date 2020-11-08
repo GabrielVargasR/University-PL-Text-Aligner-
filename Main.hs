@@ -3,7 +3,7 @@ import Data.Map.Lazy hiding (sort,map,foldl)
 import Data.Char
 import Data.List (sort,map)
 import System.IO
-import MyModule
+import Aligners
 
 main = do
     putStrLn "Hi!"
