@@ -11,6 +11,7 @@ module MyModule(
     hyphenate,
     lineBreaks,
     insertBlanks,
+    -- breakAndAlign,
     test
 )
 where
@@ -88,7 +89,7 @@ where
             - Separated word (HypWord, Word)
     -}
     lineAccumulator :: ((Line,Line), [(Line, Line)], Int) -> (Token,Token) -> ((Line,Line), [(Line, Line)], Int)
-    lineAccumulator ((firstPart, secondPart), accumulator, len) (hyp, word) = if (lineLength (firstPart ++ [hyp])) <= len then ((firstPart, secondPart), accumulator ++ [(firstPart++[hyp], [word])], len)
+    lineAccumulator ((firstPart, secondPart), accumulator, len) (hyp, word) = if (lineLength (firstPart ++ [hyp])) <= len then ((firstPart, secondPart), accumulator ++ [(firstPart++[hyp], [word]++(tail secondPart))], len)
                                                                               else ((firstPart, secondPart), accumulator, len)
     
     lineBreaks :: HypMap -> Int -> Line -> [(Line,Line)]
@@ -96,7 +97,7 @@ where
                                     (_, final, _) = foldl (lineAccumulator) (broken, [broken], len) (loose broken)
                                 in final
                                 where broken = breakLine len line -- (Line, Line)
-                                      loose (a, b) = hyphenate hmap (head b)
+                                      loose (a, b) = hyphenate hmap (head b) -- [(Token),(Token)]
 
 -- Inserts blanks in a line so that it gets to a certain length
     blankFold :: (Line, Line, Int)->Token-> (Line, Line, Int)
@@ -110,10 +111,30 @@ where
                                     (_, final, _) = foldl (blankFold) (line, [], n) line
                                 in final
 
+-- Breaks and aligns an incoming String to fit a specific line length
+    baAux :: Int->(Line,Line)->[Line]->[Line]
+    baAux len (a,b) lines | b == [] = lines ++ [a]
+                         | b /= [] = baAux len (breakLine len b) (lines++[a])
+
+    baAux2 :: Int->(Line,Line)->[Line]->[Line]
+    baAux2 len (a,b) lines | b == [] = lines ++ [a]
+                           | b /= [] = baAux len (last (lineBreaks enHyp len b)) (lines++[a])
+
+    breakAndAlign :: Int->String->String->String->[String]
+    breakAndAlign len flag1 flag2 inp | flag1 == "NOSEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baAux len (breakLine len (lineify inp)) []
+                                      | flag1 == "NOSEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) (baAux len (breakLine len (lineify inp)) [])
+                                      | flag1 == "SEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baAux2 len (last $ lineBreaks enHyp len (lineify inp)) []
+                                      | flag1 == "SEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) $ baAux2 len (last $ lineBreaks enHyp len (lineify inp)) []
+
+
 -- for tests
     myLine = (Blank) : (Blank) : (Word "Aquel") : (Word "que") : (Blank) :(HypWord "contro") : (Word "la") : (Blank) : (Blank) : []
     myOtherLine = [(Word "Aquel"), (Word "que"), (Word "controla")]
     enHyp :: HypMap
-    enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"])]
+    enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"]), ("pasado", ["pa", "sa", "do"])]
 
-    test n = insertBlanks myOtherLine n
+    -- test = breakAndAlign 20 "SEPARAR" "NOAJUSTAR" "Quien controla el pasado controla el futuro. Quien controla el presente controla el pasado."
+    -- test = baAux2 20 (last (lineBreaks enHyp 20 (lineify "Quien controla el pasado controla el futuro. Quien controla el presente controla el pasado."))) []
+    -- test = (\(a,b)->(stringify a) ++ "\n" ++ (stringify b)) (last $ lineBreaks enHyp 20 (lineify "futuro. Quien controla el presente"))
+    -- test = last $ lineBreaks enHyp 20 (lineify "controla el pasado.")
+    test = lineBreaks enHyp 20 (lineify "controla el pasado.") -- hay que arreglar lineBreaks por esa excepción que da este test
