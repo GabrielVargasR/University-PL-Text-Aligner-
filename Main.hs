@@ -47,9 +47,16 @@ mainloop estado = do
             let outpfile | length tokens > 5 = tokens!!5
                          | otherwise = ""
             inh <- openFile inpfile ReadMode
-            -- ...
-            hClose inh 
-            mainloop estado
+            str <- readInputStr inh ""
+            hClose inh
+            case outpfile of
+                "" -> do
+                    printAdjustedLine $ breakAndAlign (read len :: Int) sep adj str estado
+                    mainloop estado
+                _ -> do
+                    outh <- openFile outpfile WriteMode
+                    printAndSaveAdjustedLine (breakAndAlign (read len :: Int) sep adj str estado) outh
+                    mainloop estado
         "exit" -> do
             putStrLn "Saliendo..."
         _ -> do
@@ -93,3 +100,18 @@ printAdjustedLine [] = return ()
 printAdjustedLine (x:xs) = do
                             putStrLn x
                             printAdjustedLine xs
+
+readInputStr :: Handle -> String -> IO String
+readInputStr handle str = do
+                isEOF <- hIsEOF handle
+                if isEOF then return str
+                else do 
+                    readstr <- hGetLine handle
+                    readInputStr handle (str ++ readstr)
+
+printAndSaveAdjustedLine :: [String] -> Handle -> IO ()
+printAndSaveAdjustedLine [] _ = return ()
+printAndSaveAdjustedLine (x:xs) outh = do
+                                    putStrLn x
+                                    hPutStrLn outh x
+                                    printAndSaveAdjustedLine xs outh
