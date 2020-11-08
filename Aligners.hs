@@ -107,21 +107,21 @@ where
     baAux len (a,b) lines | b == [] = lines ++ [a]
                           | b /= [] = baAux len (breakLine len b) (lines++[a])
 
-    baSepAux :: Int->(Line,Line)->[Line]->[Line]
-    baSepAux len (a,b) lines | b == [] = lines ++ [a]
-                           | b /= [] = baSepAux len (last (lineBreaks enHyp len b)) (lines++[a])
+    baSepAux :: Int->(Line,Line)->[Line]->HypMap->[Line]
+    baSepAux len (a,b) lines hmap | b == [] = lines ++ [a]
+                                  | b /= [] = baSepAux len (last (lineBreaks hmap len b)) (lines++[a]) hmap
 
-    breakAndAlign :: Int->String->String->String->[String]
-    breakAndAlign len flag1 flag2 inp | flag1 == "NOSEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baAux len (breakLine len (lineify inp)) []
-                                      | flag1 == "NOSEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) (baAux len (breakLine len (lineify inp)) [])
-                                      | flag1 == "SEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baSepAux len (last $ lineBreaks enHyp len (lineify inp)) []
-                                      | flag1 == "SEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) $ baSepAux len (last $ lineBreaks enHyp len (lineify inp)) []
+    breakAndAlign :: Int->String->String->String->HypMap->[String]
+    breakAndAlign len flag1 flag2 inp hmap | flag1 == "NOSEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baAux len (breakLine len (lineify inp)) []
+                                           | flag1 == "NOSEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) (baAux len (breakLine len (lineify inp)) [])
+                                           | flag1 == "SEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baSepAux len (last $ lineBreaks hmap len (lineify inp)) [] hmap
+                                           | flag1 == "SEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) $ baSepAux len (last $ lineBreaks hmap len (lineify inp)) [] hmap
 
 
 -- for tests
     -- myLine = (Blank) : (Blank) : (Word "Aquel") : (Word "que") : (Blank) :(HypWord "contro") : (Word "la") : (Blank) : (Blank) : []
     -- myOtherLine = [(Word "Aquel"), (Word "que"), (Word "controla")]
-    enHyp :: HypMap
-    enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"]), ("pasado", ["pa", "sa", "do"])]
+    -- enHyp :: HypMap
+    -- enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"]), ("pasado", ["pa", "sa", "do"])]
 
     -- test len f1 f2 = breakAndAlign len f1 f2 "Quien controla el pasado controla el futuro. Quien controla el presente controla el pasado."

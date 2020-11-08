@@ -32,7 +32,10 @@ mainloop estado = do
             putStrLn $ "Palabra " ++ palabra ++ " agregada"
             mainloop nuevoestado
         "save" -> do
-            putStrLn "How's everything going"
+            outh <- openFile (last tokens) WriteMode
+            saveDict outh (sort (toList estado))
+            hClose outh
+            putStrLn $ "Diccionario guardado (" ++ (show $ size estado) ++ " palabras)"
             mainloop estado
         "split" -> do
             putStrLn "How's everything going"
@@ -60,3 +63,12 @@ loadDict handle estado = do
                     let keyVal = words def
                     let nuevoestado = insert (head keyVal) (syllables $ last keyVal) estado
                     loadDict handle nuevoestado
+
+makeSyllables :: [String]->String
+makeSyllables arr = init $ foldl (\str syl-> str ++ syl ++ "-") "" arr
+
+saveDict :: Handle -> [(String, [String])] -> IO ()
+saveDict outh [] = return ()
+saveDict outh ((key,val):pairs) = do 
+                                        hPutStrLn outh $ key ++ " " ++ (makeSyllables val)
+                                        saveDict outh pairs
