@@ -7,10 +7,10 @@ import Aligners
 
 main :: IO()
 main = do 
-        mainloop
+        mainloop (fromList [])
 
-mainloop :: IO()
-mainloop = do
+mainloop :: HypMap -> IO()
+mainloop estado = do
     putStrLn ">>"
     inp <- getLine
     let tokens = words inp
@@ -19,36 +19,44 @@ mainloop = do
     case command of
         "load" -> do
             inh <- openFile (last tokens) ReadMode
-            loadDict inh
+            nuevoestado <- loadDict inh estado
             hClose inh
-            -- putStrLn $ "Diccionario cargado (" ++"n" ++ " palabras)"
-            mainloop
+            putStrLn $ "Diccionario cargado (" ++ (show $ size nuevoestado) ++ " palabras)"
+            mainloop nuevoestado
         "show" -> do
-            putStrLn "How's everything going"
-            mainloop
+            putStrLn $ show estado
+            mainloop estado
         "ins" -> do
-            putStrLn "How's everything going"
-            mainloop
+            let (palabra, silabas) = (\arr->(head arr, last arr)) (tail tokens)
+            let nuevoestado = insert palabra (syllables silabas) estado
+            putStrLn $ "Palabra " ++ palabra ++ " agregada"
+            mainloop nuevoestado
         "save" -> do
             putStrLn "How's everything going"
-            mainloop
+            mainloop estado
         "split" -> do
             putStrLn "How's everything going"
-            mainloop
+            mainloop estado
         "splitf" -> do
             putStrLn "How's everything going"
-            mainloop
+            mainloop estado
         "exit" -> do
             putStrLn "Saliendo..."
         _ -> do
             putStrLn "Comando desconocido. Intente otra vez"
-            mainloop
+            mainloop estado
 
-loadDict :: Handle -> IO ()
-loadDict handle = do
+syllables :: String -> [String]
+syllables word = let
+                    (arr, rem) = foldl (\(fin, con) c -> if c /= '-' then (fin, con ++ [c]) else (fin++[con], "")) ([],"") word
+                 in arr ++ [rem]
+
+loadDict :: Handle -> HypMap -> IO HypMap
+loadDict handle estado = do
                 isEOF <- hIsEOF handle
-                if isEOF then return ()
+                if isEOF then return estado
                 else do 
                     def <- hGetLine handle
-                    putStrLn $ head $ words def
-                    loadDict handle
+                    let keyVal = words def
+                    let nuevoestado = insert (head keyVal) (syllables $ last keyVal) estado
+                    loadDict handle nuevoestado

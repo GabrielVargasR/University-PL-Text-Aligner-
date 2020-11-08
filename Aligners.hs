@@ -1,16 +1,5 @@
 module Aligners(
-    Line,
-    Token,
     HypMap,
-    lineify,
-    stringify,
-    tokenLength,
-    lineLength,
-    breakLine,
-    mergers,
-    hyphenate,
-    lineBreaks,
-    insertBlanks,
     breakAndAlign
 )
 where
