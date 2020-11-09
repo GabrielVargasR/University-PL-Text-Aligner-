@@ -116,12 +116,3 @@ where
                                            | flag1 == "NOSEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) (baAux len (breakLine len (lineify inp)) [])
                                            | flag1 == "SEPARAR" && flag2 == "NOAJUSTAR" = map stringify $ baSepAux len (last $ lineBreaks hmap len (lineify inp)) [] hmap
                                            | flag1 == "SEPARAR" && flag2 == "AJUSTAR" = map (\a->stringify $ insertBlanks a (len-(lineLength a))) $ baSepAux len (last $ lineBreaks hmap len (lineify inp)) [] hmap
-
-
--- for tests
-    -- myLine = (Blank) : (Blank) : (Word "Aquel") : (Word "que") : (Blank) :(HypWord "contro") : (Word "la") : (Blank) : (Blank) : []
-    -- myOtherLine = [(Word "Aquel"), (Word "que"), (Word "controla")]
-    -- enHyp :: HypMap
-    -- enHyp = fromList [("controla", ["con", "tro", "la"]), ("futuro", ["fu", "tu", "ro"]), ("presente", ["pre", "sen", "te"]), ("pasado", ["pa", "sa", "do"])]
-
-    -- test len f1 f2 = breakAndAlign len f1 f2 "Quien controla el pasado controla el futuro. Quien controla el presente controla el pasado."

@@ -19,7 +19,7 @@ mainloop estado = do
     case command of
         "load" -> do
             inh <- openFile (last tokens) ReadMode
-            nuevoestado <- loadDict inh estado
+            nuevoestado <- loadDict inh (fromList [])
             hClose inh
             putStrLn $ "Diccionario cargado (" ++ (show $ size nuevoestado) ++ " palabras)"
             mainloop nuevoestado
@@ -39,7 +39,7 @@ mainloop estado = do
             mainloop estado
         "split" -> do
             let (len, sep, adj, str) = (tokens!!1, separateOpt (tokens!!2), adjustOpt (tokens!!3), init $ foldl (\str wrd -> str ++ wrd ++ " ") "" (drop 4 tokens))
-            putStrLn $ sep ++ adj
+            -- putStrLn $ sep ++ adj
             printAdjustedLine $ breakAndAlign (read len :: Int) sep adj str estado
             mainloop estado
         "splitf" -> do
